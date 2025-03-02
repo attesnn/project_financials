@@ -1,7 +1,11 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker
+from dotenv import load_dotenv
+import os
 
 Base = declarative_base()
+
+load_dotenv()
 
 class WBSElement(Base):
     __tablename__ = 'wbs_elements'
@@ -12,6 +16,8 @@ class WBSElement(Base):
     budget = Column(Float, default=0.0)
 
 # Initialize the database
-engine = create_engine('postgresql://postgres:123Hupex123-@localhost:5432/budget_app')
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
