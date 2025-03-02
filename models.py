@@ -22,8 +22,8 @@ class ProjectDetails(Base):
     __tablename__ = 'project_details'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
-    number = Column(String(50), nullable=False)
+    project_name = Column(String(50), nullable=False)
+    project_number = Column(String(50), nullable=False)
     #project_manager = Column(String(50), nullable=False)
     #project_start = Column(String(50), nullable=False)
     #project_end = Column(String(50), nullable=False)

@@ -1,6 +1,6 @@
 # Import necessary modules
 from flask import Flask, render_template, request, redirect, url_for
-from models import Session, WBSElement  # Import database session and WBS model
+from models import Session, WBSElement, ProjectDetails  # Import database session and WBS model
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -16,15 +16,17 @@ def index():
     
     # Query all WBS elements from the database
     wbs_elements = session.query(WBSElement).all()
+    project_details = session.query(ProjectDetails).all()  
     
     # Close the session to free up resources
     session.close()
     
     # Render the 'index.html' template and pass the WBS elements to it
-    return render_template("index.html", wbs_elements=wbs_elements)
+    return render_template("index.html", wbs_elements=wbs_elements, project_details=project_details)
 
 # Route to handle adding a new WBS element
 @app.route("/add", methods=["POST"])
+
 def add_wbs_element():
     """
     Add a new WBS element to the database.
@@ -53,6 +55,35 @@ def add_wbs_element():
     
     # Redirect the user back to the home page after adding the element
     return redirect(url_for("index"))
+
+@app.route("/addproject", methods=["POST"])
+def add_project():
+    """
+    Add a new project to the database.
+    """
+    # Get form data from the request
+    project_name = request.form.get("project_name")
+    project_number = request.form.get("project_number")
+
+    # Create a database session
+    session = Session()
+
+    # Create a new project object
+    new_project = ProjectDetails(
+        project_name=project_name,
+        project_number=project_number
+    )
+
+    # Add the new project to the session and commit it to the database
+    session.addproject(new_project)
+    session.commit()
+
+    # Close the session
+    session.close()
+
+    # Redirect the user back to the home page after adding the project
+    return redirect(url_for("index"))
+
 
 # Route to handle deleting a WBS element
 @app.route("/delete/<int:element_id>")

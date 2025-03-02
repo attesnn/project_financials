@@ -7,12 +7,12 @@ def add_wbs_element(name, parent_id=None, budget=0.0):
     session.commit()
     print(f"Added WBS element: {name} (Parent: {parent_id})")
 
-def add_project(name, number):
+def add_project(project_name, project_number):
     session = Session()
-    new_project = ProjectDetails(name=name, number=number)
+    new_project = ProjectDetails(project_name=project_name, project_number=project_number)
     session.add(new_project)
     session.commit()
-    print(f"Added Project: {name} (number: {number})")
+    print(f"Added Project: {project_name} (project_number: {project_number})")
 
 def display_wbs():
     session = Session()
@@ -21,6 +21,13 @@ def display_wbs():
     # Simple print (we'll improve this later)
     for element in elements:
         print(f"ID: {element.id}, Name: {element.name}, Parent: {element.parent_id}, Budget: {element.budget}")
+
+def display_proj():
+    session = Session()
+    projects = session.query(ProjectDetails).all()
+
+    for project in projects:
+        print(f"ID: {project.id}, Project Name: {project.project_name}, Project Number: {project.project_number}")
 
 def delete_wbs_element(element_id):
     session = Session()
@@ -51,11 +58,14 @@ if __name__ == "__main__":
         command = sys.argv[1]
 
         if command == "projadd":
-            name = sys.argv[2]
-            number = int(sys.argv[3]) if len(sys.argv) > 3 else None
-            add_project(name, number)        
-        
-        if command == "wbsadd":
+            project_name = sys.argv[2]
+            project_number = str(sys.argv[3]) if len(sys.argv) > 3 else None
+            add_project(project_name, project_number)      
+
+        if command == "projdisplay":
+            display_proj()
+    
+        elif command == "wbsadd":
             name = sys.argv[2]
             parent_id = int(sys.argv[3]) if len(sys.argv) > 3 else None
             budget = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
