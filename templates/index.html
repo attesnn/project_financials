@@ -6,7 +6,31 @@
     <title>Budget Planning</title>
 </head>
 <body>
-    <h1>WBS Elements</h1>
+    <h1>Projects</h1>
+    <table border="2">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr>
+                <td>{{ project.id }}</td>
+                <td>{{ project.name }}</td>
+                <td>
+                    <a href="{{ url_for('delete_project', project_id=project.id) }}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+
+    <h2>WBS Elements</h2>
     
     <!-- Display WBS elements in a table -->
     <table border="1">

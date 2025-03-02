@@ -1,4 +1,4 @@
-from models import Session, WBSElement
+from models import Session, WBSElement, ProjectDetails
 
 def add_wbs_element(name, parent_id=None, budget=0.0):
     session = Session()
@@ -6,6 +6,13 @@ def add_wbs_element(name, parent_id=None, budget=0.0):
     session.add(new_element)
     session.commit()
     print(f"Added WBS element: {name} (Parent: {parent_id})")
+
+def add_project(name, number):
+    session = Session()
+    new_project = ProjectDetails(name=name, number=number)
+    session.add(new_project)
+    session.commit()
+    print(f"Added Project: {name} (number: {number})")
 
 def display_wbs():
     session = Session()
@@ -42,21 +49,28 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         command = sys.argv[1]
+
+        if command == "projadd":
+            name = sys.argv[2]
+            number = int(sys.argv[3]) if len(sys.argv) > 3 else None
+            add_project(name, number)        
         
-        if command == "add":
+        if command == "wbsadd":
             name = sys.argv[2]
             parent_id = int(sys.argv[3]) if len(sys.argv) > 3 else None
             budget = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
             add_wbs_element(name, parent_id, budget)
         
-        elif command == "delete":
+        elif command == "wbsdelete":
             element_id = int(sys.argv[2])
             delete_wbs_element(element_id)
         
-        elif command == "display":
+        elif command == "wbsdisplay":
             display_wbs()
         
         else:
-            print("Invalid command. Use 'add', 'delete', or 'display'.")
+            print("Invalid command. Use 'wbsadd', 'wbsdelete', or 'wbsdisplay'.")
     else:
         print("Usage: python cli.py [command] [args]")
+    
+    
