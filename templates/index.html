@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planning</title>
+</head>
+<body>
+    <h1>WBS Elements</h1>
+    
+    <!-- Display WBS elements in a table -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Parent ID</th>
+                <th>Budget</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for element in wbs_elements %}
+            <tr>
+                <td>{{ element.id }}</td>
+                <td>{{ element.name }}</td>
+                <td>{{ element.parent_id if element.parent_id else "None" }}</td>
+                <td>${{ "%.2f"|format(element.budget) }}</td>
+                <td>
+                    <a href="{{ url_for('delete_wbs_element', element_id=element.id) }}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Form to add a new WBS element -->
+    <h2>Add New WBS Element</h2>
+    <form action="{{ url_for('add_wbs_element') }}" method="POST">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="parent_id">Parent ID (optional):</label>
+        <input type="number" id="parent_id" name="parent_id">
+        <br>
+        <label for="budget">Budget:</label>
+        <input type="number" step="0.01" id="budget" name="budget" value="0.0">
+        <br>
+        <button type="submit">Add</button>
+    </form>
+</body>
+</html>
