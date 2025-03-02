@@ -33,6 +33,7 @@ def add_wbs_element():
     """
     # Get form data from the request
     name = request.form.get("name")  # Required field: Name of the WBS element
+    project_id = request.form.get("project_id")  # Required field: Project ID
     parent_id = request.form.get("parent_id")  # Optional field: Parent ID
     budget = request.form.get("budget", 0.0)  # Optional field: Budget (default to 0.0)
     
@@ -42,6 +43,7 @@ def add_wbs_element():
     # Create a new WBS element object
     new_element = WBSElement(
         name=name,
+        project_id=project_id,  # Convert project_id to int
         parent_id=int(parent_id) if parent_id else None,  # Convert parent_id to int if provided
         budget=float(budget)  # Convert budget to float
     )

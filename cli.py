@@ -1,18 +1,18 @@
 from models import Session, WBSElement, ProjectDetails
 
-def add_wbs_element(name, parent_id=None, budget=0.0):
+def add_wbs_element(name, project_id, budget=0.0):
     session = Session()
-    new_element = WBSElement(name=name, parent_id=parent_id, budget=budget)
+    new_element = WBSElement(name=name, project_id=project_id, budget=budget)
     session.add(new_element)
     session.commit()
-    print(f"Added WBS element: {name} (Parent: {parent_id})")
+    print(f"Added WBS element: {name} (Parent: {parent_id}) (Project: {project_id}) ")
 
 def add_project(project_name, project_number):
     session = Session()
     new_project = ProjectDetails(project_name=project_name, project_number=project_number)
     session.add(new_project)
     session.commit()
-    print(f"Added Project: {project_name} (project_number: {project_number})")
+    print(f"Added Project: {project_name} (project_number: {project_number}) (ID: {new_project.id})")
 
 def display_wbs():
     session = Session()
@@ -20,7 +20,7 @@ def display_wbs():
     
     # Simple print (we'll improve this later)
     for element in elements:
-        print(f"ID: {element.id}, Name: {element.name}, Parent: {element.parent_id}, Budget: {element.budget}")
+        print(f"ID: {element.id}, Name: {element.name}, Parent: {element.parent_id}, Budget: {element.budget}, Project: {element.project_id}")
 
 def display_proj():
     session = Session()
@@ -62,14 +62,18 @@ if __name__ == "__main__":
             project_number = str(sys.argv[3]) if len(sys.argv) > 3 else None
             add_project(project_name, project_number)      
 
-        if command == "projdisplay":
+        elif command == "projdisplay":
             display_proj()
     
         elif command == "wbsadd":
-            name = sys.argv[2]
-            parent_id = int(sys.argv[3]) if len(sys.argv) > 3 else None
-            budget = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
-            add_wbs_element(name, parent_id, budget)
+            if len(sys.argv) < 4:
+                print("Usage: python cli.py wbsadd <name> <project_id> [budget] [parent_id]")
+            else:
+                name = sys.argv[2]
+                project_id = int(sys.argv[3]) if len(sys.argv) > 3 else None
+                budget = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
+                parent_id = int(sys.argv[5]) if len(sys.argv) > 5 else None
+                add_wbs_element(name, parent_id, budget)
         
         elif command == "wbsdelete":
             element_id = int(sys.argv[2])
