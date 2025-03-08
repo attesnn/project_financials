@@ -1,126 +1,115 @@
-# Import necessary modules
-from flask import Flask, render_template, request, redirect, url_for
-from models import Session, WBSElement, ProjectDetails  # Import database session and WBS model
+import os
+from flask import Flask, render_template, request, redirect, url_for, flash
+from models import Session, WBSElement, ProjectDetails
 
-# Initialize the Flask app
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
 
-# Route for the home page
 @app.route("/")
 def index():
-    """
-    Display all WBS elements in a table.
-    """
-    # Create a database session
     session = Session()
-    
-    # Query all WBS elements from the database
-    wbs_elements = session.query(WBSElement).all()
-    project_details = session.query(ProjectDetails).all()  
-    
-    # Close the session to free up resources
-    session.close()
-    
-    # Render the 'index.html' template and pass the WBS elements to it
+    try:
+        wbs_elements = session.query(WBSElement).all()
+        project_details = session.query(ProjectDetails).all()
+    except Exception as e:
+        flash(f"Error fetching data: {str(e)}", "error")
+        wbs_elements, project_details = [], []
+    finally:
+        session.close()
     return render_template("index.html", wbs_elements=wbs_elements, project_details=project_details)
 
-# Route to handle adding a new WBS element
 @app.route("/add", methods=["POST"])
-
 def add_wbs_element():
-    """
-    Add a new WBS element to the database.
-    """
-    # Get form data from the request
-    name = request.form.get("name")  # Required field: Name of the WBS element
-    project_id = request.form.get("project_id")  # Required field: Project ID
-    parent_id = request.form.get("parent_id")  # Optional field: Parent ID
-    budget = request.form.get("budget", 0.0)  # Optional field: Budget (default to 0.0)
-    
-    # Create a database session
+    name = request.form.get("name")
+    project_id = request.form.get("project_id")
+    parent_id = request.form.get("parent_id")
+    budget = request.form.get("budget", 0.0)
+
+    if not name or not project_id:
+        flash("Name and Project ID are required.", "error")
+        return redirect(url_for("index"))
+
     session = Session()
-    
-    # Create a new WBS element object
-    new_element = WBSElement(
-        name=name,
-        project_id=project_id,  # Convert project_id to int
-        parent_id=int(parent_id) if parent_id else None,  # Convert parent_id to int if provided
-        budget=float(budget)  # Convert budget to float
-    )
-    
-    # Add the new element to the session and commit it to the database
-    session.add(new_element)
-    session.commit()
-    
-    # Close the session
-    session.close()
-    
-    # Redirect the user back to the home page after adding the element
+    try:
+        new_element = WBSElement(
+            name=name,
+            project_id=int(project_id),
+            parent_id=int(parent_id) if parent_id else None,
+            budget=float(budget)
+        )
+        session.add(new_element)
+        session.commit()
+        flash("WBS Element added successfully!", "success")
+    except Exception as e:
+        session.rollback()
+        flash(f"Error adding WBS element: {str(e)}", "error")
+    finally:
+        session.close()
     return redirect(url_for("index"))
 
-@app.route("/addproject", methods=["POST"])
-def add_project():
-    """
-    Add a new project to the database.
-    """
-    # Get form data from the request
+@app.route("/addprojects", methods=["POST"])
+def addproject():
     project_name = request.form.get("project_name")
     project_number = request.form.get("project_number")
-
-    # Create a database session
+    if not project_name or not project_number:
+        flash("Project Name and Project Number are required.", "error")
+        return redirect(url_for("index"))
     session = Session()
-
-    # Create a new project object
-    new_project = ProjectDetails(
-        project_name=project_name,
-        project_number=project_number
-    )
-
-    # Add the new project to the session and commit it to the database
-    session.addproject(new_project)
-    session.commit()
-
-    # Close the session
-    session.close()
-
-    # Redirect the user back to the home page after adding the project
+    try:
+        new_project = ProjectDetails(project_number=project_number, project_name=project_name)
+        session.add(new_project)
+        session.commit()
+        flash(f"Project '{project_name}' added successfully!", "success")
+    except Exception as e:
+        session.rollback()
+        flash(f"Error adding project: {str(e)}", "error")
+    finally:
+        session.close()
     return redirect(url_for("index"))
 
-
-# Route to handle deleting a WBS element
-@app.route("/delete/<int:element_id>")
-def delete_wbs_element(element_id):
-    """
-    Delete a WBS element from the database.
-    """
-    # Create a database session
+@app.route("/deleteproject/<int:project_id>")
+def delete_project(project_id):
     session = Session()
-    
-    # Query the WBS element by its ID
-    element = session.query(WBSElement).get(element_id)
-    
-    if element:
-        # Check if the element has any children
-        children = session.query(WBSElement).filter_by(parent_id=element.id).all()
-        
-        if children:
-            # If the element has children, print a message (for debugging)
-            print(f"Cannot delete {element.name} (ID: {element.id}) because it has children.")
+    try:
+        element = session.query(ProjectDetails).get(project_id)
+        if not element:
+            flash("Project not found.", "error")
         else:
-            # If no children, delete the element and commit the change
-            session.delete(element)
-            session.commit()
-    
-    # Close the session
-    session.close()
-    
-    # Redirect the user back to the home page after deletion
+            children = session.query(WBSElement).filter_by(project_id=element.id).all()
+            if children:
+                flash(f"Cannot delete {element.project_name} because it has children.", "error")
+            else:
+                session.delete(element)
+                session.commit()
+                flash("Project deleted successfully.", "success")
+    except Exception as e:
+        session.rollback()
+        flash(f"Error deleting project: {str(e)}", "error")
+    finally:
+        session.close()
     return redirect(url_for("index"))
 
-# Run the Flask app
+@app.route("/deletewbs/<int:element_id>")
+def delete_wbs_element(element_id):
+    session = Session()
+    try:
+        element = session.query(WBSElement).get(element_id)
+        if not element:
+            flash("WBS Element not found.", "error")
+        else:
+            children = session.query(WBSElement).filter_by(parent_id=element.id).all()
+            if children:
+                flash(f"Cannot delete {element.name} because it has children.", "error")
+            else:
+                session.delete(element)
+                session.commit()
+                flash("WBS Element deleted successfully.", "success")
+    except Exception as e:
+        session.rollback()
+        flash(f"Error deleting WBS element: {str(e)}", "error")
+    finally:
+        session.close()
+    return redirect(url_for("index"))
+
 if __name__ == "__main__":
-    """
-    Start the Flask development server.
-    """
-    # Run the app in debug mode (auto-reloads on code changes)
     app.run(debug=True)

@@ -4,14 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budget Planning</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
     <h1>Projects</h1>
     <table border="2">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Number</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -20,30 +33,26 @@
             <tr>
                 <td>{{ project.id }}</td>
                 <td>{{ project.project_name }}</td>
+                <td>{{ project.project_number }}</td>
+                <td>
+                    <a href="{{ url_for('delete_project', project_id=project.id) }}">Delete</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
-
     </table>
 
     <h2>Add New Project Element</h2>
-    <form action="{{ url_for('add_project') }}" method="POST">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
+    <form action="{{ url_for('addproject') }}" method="POST">
+        <label for="project_number">Project Number:</label>
+        <input type="text" id="project_number" name="project_number" required>
         <br>
-        <label for="parent_id">Parent ID (optional):</label>
-        <input type="number" id="parent_id" name="parent_id">
-        <br>
-        <label for="budget">Budget:</label>
-        <input type="number" id="budget" name="budget" required>
-        <br>
+        <label for="project_name">Project Name:</label>
+        <input type="text" id="project_name" name="project_name" required>
         <button type="submit">Add</button>
     </form>
 
-
     <h2>WBS Elements</h2>
-    
-    <!-- Display WBS elements in a table -->
     <table border="1">
         <thead>
             <tr>
@@ -51,6 +60,7 @@
                 <th>Name</th>
                 <th>Parent ID</th>
                 <th>Budget</th>
+                <th>Project</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -60,7 +70,8 @@
                 <td>{{ element.id }}</td>
                 <td>{{ element.name }}</td>
                 <td>{{ element.parent_id if element.parent_id else "None" }}</td>
-                <td>${{ "%.2f"|format(element.budget) }}</td>
+                <td>{{ "%.2f"|format(element.budget) }}€</td>
+                <td>{{ element.project_id }}</td>
                 <td>
                     <a href="{{ url_for('delete_wbs_element', element_id=element.id) }}">Delete</a>
                 </td>
@@ -69,7 +80,6 @@
         </tbody>
     </table>
     
-    <!-- Form to add a new WBS element -->
     <h2>Add New WBS Element</h2>
     <form action="{{ url_for('add_wbs_element') }}" method="POST">
         <label for="name">Name:</label>
@@ -81,6 +91,10 @@
         <label for="budget">Budget:</label>
         <input type="number" id="budget" name="budget" required>
         <br>
+        <label for="project_id">Project ID:</label>
+        <input type="number" id="project_id" name="project_id" required>
+        <br>   
+
         <button type="submit">Add</button>
     </form>
 </body>
